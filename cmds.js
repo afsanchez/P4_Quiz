@@ -25,11 +25,14 @@ exports.helpCmd = rl => {
 *Añadir nuevo quiz
 **/
 
-exports.addCmd = rl => {
-    	log('Añadir un nuevo quiz.');
-    	rl.prompt();
-    	
-
+exports.addCmd = rl =>{
+  rl.question(colorize(' Introduzca una pregunta: ', 'red'), question => {
+    rl.question(colorize(' Introduzca la respuesta: ', 'red'), answer => {
+      model.add(question, answer);
+      log(` ${colorize('Se ha añadido', 'magenta')}: ${question} ${colorize('=>', 'magenta')} ${answer}`);
+      rl.prompt();
+    });
+  });
 };
 
 /**
@@ -37,8 +40,10 @@ exports.addCmd = rl => {
 **/
 
 exports.creditsCmd = rl => {
-    	log('Autores de la practica:');
-    	log('ADRIAN');
+    	log('Autor de la practica:');
+    	log('ADRIAN Fernandez Sanchez');
+      log('Guillermo Valle')
+    
     	rl.prompt();
 };
 
@@ -74,31 +79,84 @@ exports.showCmd =  (rl , id) => {
 };
 
 /**
-*Borra el quiz indicado
+*Borra un quiz que indiques
 **/
 
-exports.deleteCmd = (rl , id) => {
-    	log('Borra el quiz indicado');
-    	rl.prompt();
+exports.deleteCmd = (rl, id) =>{
+
+  if (typeof id === "undefined") {
+
+    errorlog(`Falta el parámetro id.`);
+
+  } else {
+
+    try{
+      model.deleteByIndex(id);
+    } catch(error) {
+      errorlog(error.message);
+    }
+  }
+  rl.prompt();
 };
 
 /**
-*Edita el quiz indicado
+*Edita un quiz
 **/
 
-exports.editCmd = (rl , id) => {
-    	log('Edita el quiz indicado');
-    	rl.prompt();
-
+exports.editCmd = (rl, id) => {
+  if (typeof id === 'undefined'){
+    errorlog('El valor del parámetro id no es válido');
+    rl.prompt();
+  } else {
+    try {
+      const quiz = model.getByIndex(id);
+      process.stdout.isTTY && setTimeout(() => {rl.write(quiz.question)},0);
+      rl.question(colorize('Introduce la pregunta: ', 'red'), question => {
+        process.stdout.isTTY && setTimeout(() => {rl.write(quiz.answer)},0);
+        rl.question(colorize('Introduce la respuesta: ', 'red'), answer => {
+          model.update(id, question, answer);
+          log(`Se ha cambiado el quiz ${colorize(id,'magenta')} por: ${question}  ${colorize('=>','magenta')} ${answer}`);
+          rl.prompt();
+        });
+      });
+    } catch (error) {
+      errorlog(error.message);
+      rl.prompt();
+    }
+  }
 };
 
 /**
-*Testea la pregunta indicada
+*Prueba un quiz
 **/
 
-exports.testCmd = (rl , id) => {
-    	log('Prueba la pregunta');
-    	rl.prompt();
+exports.testCmd = (rl, id) => {
+  if (typeof id === 'undefined'){
+    errorlog('El valor del parámetro id no es válido');
+    rl.prompt();
+  } else {
+    try {
+      const quiz = model.getByIndex(id);
+      const pregunta = quiz.question + '?';
+      rl.question(colorize(pregunta, 'red'), respuesta => {
+        respuesta = respuesta.toLowerCase().trim();
+        respuesta = respuesta.charAt(0).toUpperCase() + respuesta.slice(1);
+
+        if(respuesta === quiz.answer){
+          log('Su respuesta es correcta');
+          biglog("Correcta", "green");
+          rl.prompt();
+        } else {
+            log('Su respuesta es incorrecta');
+          biglog("Incorrecta", "red");
+          rl.prompt();
+        }
+      });
+    } catch (error) {
+      errorlog(error.message);
+      rl.prompt();
+    }
+  }
 };
 
 /**
