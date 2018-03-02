@@ -1,55 +1,105 @@
+const fs = require("fs");
 
-// Modelo de datos
-
+//Nombre del fichero donde se guardan las preguntas
+const DB_FILENAME = "quizzes.json";
+//Quizzes almacenados
 let quizzes = [
-	{question: "Capital de Italia",answer: "Roma"},
-	{question: "Capital de Francia",answer: "París"},
-	{question: "Capital de España",answer: "Madrid"},
-	{question: "Capital de Portugal",answer: "Lisboa"},
-];
+{
+	question: "Capital de Italia",
+	answer: "Roma"
+},
+{
+	question: "Capital de Francia",
+	answer: "París"
+},
+{
+	question: "Capital de España",
+	answer: "Madrid"
+},
+{
+	question: "Capital de Portugal",
+	answer: "Lisboa"
+}];
+//Carga el contenido del fichero
 
-//Devuelve numero total de preguntas existentes
+const load = () => {
+
+	fs.readFile(DB_FILENAME, (err, data) => {
+		if(err) {
+
+			//La primera vez no existe el fichero.
+			if (err.code === "ENOENT") {
+				save(); //valores iniciales
+				return;
+			}
+			throw err;
+		}
+		let json = JSON.parse(data);
+
+		if(json) {
+			quizzes = json;
+		}
+	});
+};
+
+//Guardar las preguntas en un fichero
+
+const save = () => {
+
+	fs.writeFile(DB_FILENAME,
+		JSON.stringify(quizzes),
+		err => {
+			if (err) throw err;
+		});
+};
+
 exports.count = () => quizzes.length;
 
-//Añadir un quizz
-const add = (question,answer) => {
-	 quizzes.push({
-	 	question: (question || "").trim(),
-	 	answer: (answer || "").trim()
-	 });
-};
+//Añade un nuevo quiz.
 
-//Actualiza la quizz en la posicion index
+exports.add = (question, answer) => {
 
-exports.update = (id , question, answer) =>{
-	const quiz = quizzes[id];
-	if (typeof quizz === "indefined"){
-		throw new Error (`El valor del parámetro id no es válido`);
-	}
-	quizzes.splice(id ,1, {
+	quizzes.push({
 		question: (question || "").trim(),
-	 	answer: (answer || "").trim()
-	 });
+		answer: (answer || "").trim()
+	});
+	save();
 };
 
-//Devuelve los quizzes existentes (clonado)
+exports.update = (id, question, answer) => {
+
+	const quiz = quizzes[id];
+	if (typeof quiz === "undefined"){
+		throw new Error(`El valor del parámetro id no es válido.`);
+	}
+	quizzes.splice(id, 1, {
+		question: (question || "").trim(),
+		answer: (answer || "").trim()
+	});
+	save();
+};
+
 exports.getAll = () => JSON.parse(JSON.stringify(quizzes));
 
-//Devuelve un clon de quizz almacenado en la posicion dada
 exports.getByIndex = id => {
 
 	const quiz = quizzes[id];
-	if (typeof quizz === "indefined"){
-		throw new Error (`El valor del parámetro id no es válido`);
+	if (typeof quiz === "undefined") {
+		throw new Error(`El valor del parámetro id no es válido.`);
 	}
 	return JSON.parse(JSON.stringify(quiz));
 };
 
-//Eliminar quizz posicion dada por id
-exports.deleteByIndex = id =>{
+//Elimina el quiz deseado
+exports.deleteByIndex = id => {
+
 	const quiz = quizzes[id];
-	if (typeof quizz === "indefined"){
-		throw new Error (`El valor del parámetro id no es válido`);
+	if (typeof quiz === "undefined") {
+		throw new Error(`El valor del parámetro id no es válido.`);
 	}
 	quizzes.splice(id, 1);
+	save();
 };
+
+//Carga los quizzes almacenados en el fichero.
+load();
