@@ -38,8 +38,7 @@ exports.addCmd = rl => {
 
 exports.creditsCmd = rl => {
     	log('Autores de la practica:');
-    	log('Adrián Fernández Sánchez');
-    	log('Guillermo Valle Gutiérrez');
+    	log('ADRIAN');
     	rl.prompt();
 };
 
