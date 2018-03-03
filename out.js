@@ -4,7 +4,7 @@ const chalk = require('chalk');
 const colorize = (msg, color) => {
 
 	if (typeof color !== "undefined") {
-		msg = chalk[color].bold('msg');
+		msg = chalk[color].bold(msg);
 	}
 	return msg;
 };

@@ -131,23 +131,26 @@ exports.editCmd = (rl, id) => {
 **/
 
 exports.testCmd = (rl, id) => {
+
   if (typeof id === 'undefined'){
     errorlog('El valor del parámetro id no es válido');
     rl.prompt();
   } else {
+
     try {
       const quiz = model.getByIndex(id);
       const pregunta = quiz.question + '?';
-      rl.question(colorize(pregunta, 'red'), respuesta => {
+      rl.question(colorize(pregunta, 'yellow'), respuesta => {
         respuesta = respuesta.toLowerCase().trim();
         respuesta = respuesta.charAt(0).toUpperCase() + respuesta.slice(1);
 
         if(respuesta === quiz.answer){
-          log('Su respuesta es correcta');
+
+          log('La respuesta es correcta');
           biglog("Correcta", "green");
           rl.prompt();
         } else {
-            log('Su respuesta es incorrecta');
+            log('La respuesta es incorrecta');
           biglog("Incorrecta", "red");
           rl.prompt();
         }
@@ -159,14 +162,47 @@ exports.testCmd = (rl, id) => {
   }
 };
 
-/**
-*Juega
-**/
+exports.playCmd = rl =>{
 
-exports.playCmd = rl => {
-    	log('Jugar');
-    	rl.prompt();
+  let aciertos = 0;
+  let toBeResolved = [];
+
+  for(let i=0; i < model.count(); i++){
+    toBeResolved[i] = model.getByIndex(i);
+  };
+
+  const playOne = () => {
+
+    if(toBeResolved.length === 0){
+      log("Fin del juego! Aciertos: " + aciertos);
+      biglog(aciertos, 'magenta');
+      aciertos = 0;
+      rl.prompt();
+    } else {
+
+      let id = Math.round(Math.random() * (toBeResolved.length - 1));
+      
+      rl.question(colorize(toBeResolved[id].question+"? ", 'yellow'), answer => {
+
+        if (toBeResolved[id].answer.toLowerCase().trim() === answer.toLowerCase().trim()){
+          aciertos++;
+          log('CORRECTO - LLeva '+ aciertos + ' aciertos.', 'green');
+          toBeResolved.splice(id, 1);
+          playOne();
+        } else{
+          log('INCORRECTO.', 'red');
+          log("Fin del juego! Aciertos: " + aciertos);
+          biglog(aciertos, 'magenta');
+          aciertos = 0;
+          rl.prompt();
+        }
+      });
+
+    }
+  };
+  playOne();
 };
+
 exports.quitCmd = rl =>{
   rl.close();
 };

@@ -15,7 +15,7 @@ const rl = readline.createInterface({
 
   output: process.stdout,
 
-  prompt: colorize('quiz> ', 'blue'),
+  prompt: colorize('quiz > ', 'blue'),
 
   completer : (line)=> {
   const completions = 'help p show edit test q quit h list add delete play credits '.split(' ');
@@ -75,7 +75,7 @@ on('line', (line) => {
 
     case 'play':
     case 'p':
-      cmds.playCmd(rl);
+      cmds.playCmd(rl,args[1]);
       break;
 
   case 'quit':
@@ -94,7 +94,7 @@ on('line', (line) => {
 })
 .on('close', () => {
 
-  log('Hasta luego Lucas!');
+  log('Hasta luego Lucas!', 'blue');
 
   process.exit(0);
 
