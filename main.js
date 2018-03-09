@@ -7,7 +7,7 @@ const cmds = require('./cmds');
 
 
 //Mensaje inicial
-biglog('CORE quiz', 'red');
+biglog('LA CHANA', 'magenta');
 
 const rl = readline.createInterface({
 
