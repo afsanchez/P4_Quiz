@@ -82,7 +82,6 @@ exports.addCmd = rl => {
 exports.creditsCmd = rl => {
     	log('Autor de la practica:');
     	log('ADRIAN Fernandez Sanchez');
-      log('Guillermo Valle')
     
     	rl.prompt();
 };
@@ -193,8 +192,9 @@ exports.testCmd = (rl,id) =>{
   validateId(id)
   .then(id => models.quiz.findById(id))
   .then(quiz => {
+
     if (!quiz){
-      throw new Error(`No existe un quiz asociado al id=${id}.`);
+      throw new Error(`No existe el quiz con id=${id}.`);
     }
   return makeQuestion(rl,colorize(quiz.question +'? ','red')
   )
@@ -209,7 +209,7 @@ exports.testCmd = (rl,id) =>{
   });
   })
   .catch(Sequelize.ValidationError, error =>{
-    errorlog('El quiz es erróneo:');
+    errorlog('El quiz no es correcto:');
     error.errors.forEach(({message}) => errorlog(message));
   })
   .catch(error =>{
@@ -221,20 +221,20 @@ exports.testCmd = (rl,id) =>{
 };
 
 exports.playCmd = rl => {
-  let score = 0; 
+  let resultado = 0; 
   let toBeResolved = []; 
 
   models.quiz.findAll() 
     .then(quizzes => {
       quizzes.forEach((quiz,id) => {
-      toBeResolved[id] = quiz; // Array de preguntas por responder
+      toBeResolved[id] = quiz; 
   });
 
   const playOne = () => {
     if (toBeResolved.length === 0){
       log(`No hay nada más que preguntar`);
       log(`Fin`);
-      log(`Final del examen. Aciertos: ${score}`);
+      log(`Final del examen. Aciertos: ${resultado}`);
       rl.prompt();
     }
     else {
@@ -244,12 +244,12 @@ exports.playCmd = rl => {
       return makeQuestion(rl, `${quiz.question}? `)
       .then(ans => {
         if (quiz.answer.toLowerCase().trim() === ans.toLowerCase().trim()) {
-          score++;
-          log(`CORRECTO - Lleva ${score} aciertos.`);
+          resultado++;
+          log(`CORRECTO - Lleva ${resultado} aciertos.`);
           playOne();
         }else{
           log('INCORRECTO.');
-          log(`Fin del juego. Aciertos: ${score}`);
+          log(`Fin del juego. Aciertos: ${resultado}`);
           log(`Fin`);
         }
       })
