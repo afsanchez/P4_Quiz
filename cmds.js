@@ -6,7 +6,7 @@ const{log, biglog, errorlog, colorize}= require("./out");
 /**
 *Muestra la ayuda
 **/
-exports.helpCmd = rl => {
+exports.helpCmd = (socket, rl) => {
   		log(socket, " add : añadir un quiz al prgrama");
   		log(socket, " credits : devuelve el nombre de los autores de la practica");
   		log(socket, " list : listar todas las preguntas");
@@ -61,7 +61,7 @@ exports.addCmd = (socket, rl) => {
     return models.quiz.create(quiz);
   })
   .then(quiz => {
-    log(` ${colorize('Se ha añadido', 'magenta')}: ${quiz.question} ${colorize('=>', 'magenta')} ${quiz.answer}`);
+    log(socket` ${colorize('Se ha añadido', 'magenta')}: ${quiz.question} ${colorize('=>', 'magenta')} ${quiz.answer}`);
   })
   .catch(Sequelize.ValidationError, error => {
     error.log(socket, 'El quiz es erroneo: ');
@@ -220,57 +220,64 @@ exports.testCmd = (socket, rl, id) =>{
   });
 };
 
-exports.playCmd = (socket, rl) => {
-  let resultado = 0; 
-  let toBeResolved = []; 
+exports.playCmd = (socket, rl )=> {
+    let score = 0;
+    let toBeResolved = [];
+    
+    
+   const playOne = () => {
 
-  models.quiz.findAll() 
-    .then(quizzes => {
-      quizzes.forEach((quiz,id) => {
-      toBeResolved[id] = quiz; 
-  });
-
-  const playOne = () => {
-    if (toBeResolved.length === 0){
-      log(socket, `No hay nada más que preguntar`);
-      log(socket, `Fin`);
-      log(socket, `Final del examen. Aciertos: ${resultado}`);
-      rl.prompt();
-    }
-    else {
-      let aleatoriamente = Math.floor(Math.random() * toBeResolved.length);
+    return Promise.resolve()
+    .then (() => {
+      if (toBeResolved.length <= 0) {
+        log(socket, "Fin del juego.");
+        log(socket, "Ha obtenido " + score + " aciertos");
+        return;
+      }
+      let aleatoriamente = Math.floor(Math.random()*(toBeResolved.length));
       let quiz = toBeResolved[aleatoriamente];
       toBeResolved.splice(aleatoriamente, 1);
-      return makeQuestion(rl, `${quiz.question}? `)
-      .then(ans => {
-        if (quiz.answer.toLowerCase().trim() === ans.toLowerCase().trim()) {
-          resultado++;
-          log(socket, socket, `CORRECTO - Lleva ${resultado} aciertos.`);
-          playOne();
-        }else{
-          log(socket, 'INCORRECTO.');
-          log(socket, `Fin del juego. Aciertos: ${resultado}`);
-          log(socket, `Fin`);
+
+      return makeQuestion(rl, quiz.question)
+      .then(a => {
+        if(a === quiz.answer) {
+          score++;
+          log(socket, "Su respusta es correcta");
+          if (toBeResolved.length > 0){
+          log(socket, "Lleva " + score + " aciertos");
+          }   
+          return playOne();
+
+        } else {
+          log(socket, "Su respusta es incorrecta");
+          log(socket, "Fin del juego");
+          log(socket, "Ha obtenido " + score + " aciertos");
+
         }
       })
-      .catch(error => {
-        errorlog(socket, error.message);
-      })
-      .then(() => {
-        rl.prompt();
-      });
-    }
-  };
-  playOne();
-  })
-  .catch(error => {
-    errorlog(socket, error.message);
+    })
+  }
+
+  models.quiz.findAll({raw: true})
+  .then(quizzes => {
+    toBeResolved = quizzes;
   })
   .then(() => {
+    return playOne();
+  })
+  .catch(er => {
+    console.log("error: " + e);
+  })
+  .then(() => {
+    console.log( score);
     rl.prompt();
-  });
+  }) 
+   
+   
 };
 
 exports.quitCmd = (socket, rl) =>{
   rl.close();
-};
+  socket.end();
+  rl.prompt();
+ };
